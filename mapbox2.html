@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title></title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.css' rel='stylesheet' />
+    <link href="http://vjs.zencdn.net/5.19.2/video-js.css" rel="stylesheet">
+
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.js'></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/2.0.0/turf.js"></script>
+    <!-- <script src="http://vjs.zencdn.net/5.19.2/video.js"></script> -->
+
+
+    <style>
+        body { margin:0; padding:0; background: #000;}
+        #map { position:absolute; bottom:0; right: 0; width:50%; height: 50%; z-index: 10; }
+        #videooverlay { position:absolute; bottom:0; left: 0; width:50%; height: 50%; z-index: 9; background-color: rgba(0,0,0,0.8); }
+        #video { position:absolute; bottom:0; left: 0; width:50%; height: 50%; z-index: 8;}
+        #story { position: absolute; top: 0; right:0; height: 50%; width: 50%; }
+        .map-overlay {
+    font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    position: absolute;
+    width: 25%;
+    top: 0;
+    left: 0;
+    padding: 10px;
+    z-index: 20;
+}
+
+.map-overlay .map-overlay-inner {
+    background-color: #fff;
+    box-shadow:0 1px 2px rgba(0, 0, 0, 0.20);
+    border-radius: 3px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.map-overlay h2 {
+    line-height: 24px;
+    display: block;
+    margin: 0 0 10px;
+}
+
+.map-overlay .legend .bar {
+    height: 10px;
+    width: 100%;
+    background: linear-gradient(to right, #FCA107, #7F3121);
+}
+
+.map-overlay input {
+    background-color: transparent;
+    display: inline-block;
+    width: 100%;
+    position: relative;
+    margin: 0;
+    cursor: ew-resize;
+}
+    </style>
+</head>
+<body>
+<!-- <iframe id="video" width="1000" height="600" src="https://www.youtube.com/embed/M6rYVXZTsoY?autoplay=1&html5=1" frameborder="0" allowfullscreen></iframe> -->
+<video id="video" preload="auto" controls width="1000" height="600">
+    <source src="https://r1---sn-ab5l6nzk.googlevideo.com/videoplayback?expire=1494264380&requiressl=yes&sparams=dur%2Cei%2Cid%2Cip%2Cipbits%2Citag%2Clmt%2Cmime%2Cmm%2Cmn%2Cms%2Cmv%2Cpl%2Cratebypass%2Crequiressl%2Csource%2Cupn%2Cexpire&upn=JHTE3F_rK3s&ipbits=0&key=yt6&ratebypass=yes&id=o-ANh1r_wyVXb9ZtRMeQgaGAMKs8lYXYf7x0e_PgxHfJnz&mn=sn-ab5l6nzk&mm=31&mime=video%2Fmp4&pl=19&itag=22&dur=191.030&lmt=1472261526558671&ip=209.205.200.210&ms=au&ei=3FUQWZH7K4i58gSF_6KoAQ&mt=1494242704&mv=u&source=youtube&type=video%2Fmp4%3B+codecs%3D%22avc1.64001F%2C+mp4a.40.2%22&quality=hd720&signature=1A10D5EC6EF0376497BBB309EC851479230AC153.27A836AB8D7095585D621AB19EAB733BB9247B09&title=(HDVidz.in)_Londons-Cycle-Superhighway-7-CS7---rideablebike" type='video/mp4'>
+</video>
+<!-- <div id="videooverlay"></div> -->
+<div id='map'></div>
+<div class='map-overlay top'>
+    <div class='map-overlay-inner'>
+        <h2>Position</h2>
+        <label id='monthPos'>Start - End</label>
+        <input id='sliderPos' type='range' min='0' max='1000' step='1' value='0' />
+        <h2>Speed</h2>
+        <label id='month'>Fast - Slow</label>
+        <input id='slider' type='range' min='1' max='1000' step='10' value='250' />
+    </div>
+</div>
+<script src='//d3js.org/d3.v3.min.js' charset='utf-8'></script>
+<script>
+var speed = 250;
+d3.select('#video').attr("width", window.innerWidth*0.5).attr("height", window.innerHeight*0.5);
+
+mapboxgl.accessToken = 'pk.eyJ1IjoiZGFucGF1bHNtaXRoIiwiYSI6ImNpeXc4NXU5ZDAwMDMzMm9lZmd4ZTFmZmQifQ.Nl9itu3jhaFTlhrV92LS0g';
+var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/danpaulsmith/cj2bl2p8d006g2rqn6qagrtb7',
+    zoom: 9 // starting zoom
+});
+
+map.on('load', function () {
+    // We use D3 to fetch the JSON here so that we can parse and use it separately
+    // from GL JS's use in the added source. You can use any request method (library
+    // or otherwise) that you want.
+    d3.json('data/DynamoDunwich.geojson', function(err, data) {
+        if (err) throw err;
+
+        // save full coordinate list for later
+        // var coordinates = data.features[0].geometry.coordinates;
+        var coordinates = data.features[0].geometry.coordinates.map(function(coord){
+            return [coord[0],coord[1]];
+        });
+
+        // start by showing just the first coordinate
+        data.features[0].geometry.coordinates = [coordinates[0]];
+
+        // add it to the map
+        map.addSource('trace', { type: 'geojson', data: data });
+        map.addLayer({
+            "id": "trace",
+            "type": "line",
+            "source": "trace",
+            "paint": {
+                "line-color": "yellow",
+                "line-opacity": 0.75,
+                "line-width": 5
+            }
+        });
+
+        // setup the viewport
+        map.jumpTo({ 'center': coordinates[0], 'zoom': 17 });
+        map.setPitch(45);
+
+        // on a regular basis, add more coordinates from the saved list and update the map
+        var i = 1;
+        // var startTime = new Date(data.features[0].properties.coordTimes[0]).getTime();
+        // var endTime = new Date(data.features[0].properties.coordTimes[data.features[0].properties.coordTimes.length-1]).getTime();
+        // var duration = endTime - startTime;
+        // // console.log(duration.getHours(), duration.getMinutes(), duration.getSeconds());
+
+        // function animateBike(route, destination) {
+        //   // set animation speed at 60x real time
+        //   var speed = 60;
+        //   // var duration = route.duration;
+        //   var path = turf.linestring(route.geometry.coordinates);
+        //   console.log('path', path)
+        //   var distance = turf.lineDistance(path);
+        //   console.log('distance', distance);
+        //   // get starting time of the animation
+        //   var start = new Date().getTime();
+        //   function animate(timestamp) {
+        //     var current_time = timestamp-new Date().getTime();
+        //     console.log('current_time', current_time);
+        //     // if the animation has reached its destination, 
+        //     // move the courier to the destination and end the animation loop
+        //     if ((current_time * speed) / (duration) >= 1) {
+        //       map.getSource('trace').setData(destination)
+        //     } else {
+        //       // find the current distance the courier has traveled along the path
+        //       var current_distance = ((current_time * speed) / (duration)) * distance;
+        //       console.log(path.geometry, current_distance, "kilometers");
+        //       var waypoint = turf.along(path, current_distance, "kilometers");
+        //       map.getSource('trace').setData(waypoint);
+        //       // continue the animation loop
+        //       requestAnimationFrame(animate);
+        //     }
+        //   }
+        //   animate(start);
+        // }
+        // animateBike(data.features[0], data.features[0].geometry.coordinates[data.features[0].geometry.coordinates.length-1]);
+
+        // map.addControl(new mapboxgl.NavigationControl());
+
+        var video = document.getElementsByTagName("video")[0];
+
+        var videoStartTimeOffset = 0;
+        var journeySteps = coordinates.length;
+        var videoDuration = video.duration;
+        var videoSteps = videoDuration/journeySteps;
+
+        console.log('journeySteps', journeySteps);
+        console.log('videoDuration', videoDuration);
+        console.log('videoSteps', videoSteps);
+
+        video.currentTime = videoStartTimeOffset;
+
+        document.getElementById('sliderPos').max = journeySteps;
+        document.getElementById('sliderPos').addEventListener('input', function(e) {
+            var pos = e.target.value;
+            globalPos = pos;
+            if(pos === 0) {
+                pos = 1;
+            }
+            data.features[0].geometry.coordinates = coordinates.slice(0, pos);
+            map.getSource('trace').setData(data);
+            console.log('pos', pos);
+            console.log('currentTime', videoSteps*pos)
+            video.currentTime = pos * videoSteps;
+        })
+
+        document.getElementById('slider').addEventListener('input', function(e) {
+            speed = parseInt(e.target.value, 10);
+        });
+
+        // var videoTimer = window.setInterval(function() {
+        //     var pos = video.currentTime/videoSteps;
+        //     data.features[0].geometry.coordinates = coordinates.slice(0, pos);
+        //     map.getSource('trace').setData(data);
+        //     map.getSource('trace').setData(data);
+        //     map.easeTo({
+        //         center: coordinates[i],
+        //         duration: speed
+        //     }); 
+        //     document.getElementById('sliderPos').value = pos;
+        // }, 30);
+
+        function animate() {
+            // data.features[0].geometry.coordinates.push(coordinates[i]);
+            // map.getSource('trace').setData(data);
+            // map.easeTo({
+            //     center: coordinates[i],
+            //     duration: speed
+            // });        
+            // i++;
+            var pos = video.currentTime/videoSteps;
+            data.features[0].geometry.coordinates = coordinates.slice(0, pos);
+            map.getSource('trace').setData(data);
+            map.easeTo({
+                center: data.features[0].geometry.coordinates[data.features[0].geometry.coordinates.length-1],
+                duration: speed
+            }); 
+            document.getElementById('sliderPos').value = pos;
+            setTimeout(function(){
+                requestAnimationFrame(animate);
+            }, speed)
+        }
+        animate();
+
+        // video.addEventListener("timeupdate", function() {
+        // if (video.currentTime >= endtimeoffset) {
+        //     video.pause();
+        // }}, false);
+
+        // var waypoint = turf.along(path, current_distance, "kilometers");
+        //       map.getSource('trace').setData(waypoint);
+        // var timer = window.setInterval(function() {
+        //     if (i < coordinates.length) {
+        //         data.features[0].geometry.coordinates.push(coordinates[i]);
+        //         map.getSource('trace').setData(data);
+        //         map.panTo(coordinates[i-1]);
+        //         i++;
+        //     } else {
+        //         window.clearInterval(timer);
+        //     }
+        // }, 100);
+    });
+});
+</script>
+
+</body>
+</html>
