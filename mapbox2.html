@@ -115,23 +115,10 @@
 </head>
 
 <body>
-  <!-- <iframe id="video" width="1000" height="600" src="https://www.youtube.com/embed/M6rYVXZTsoY?autoplay=1&html5=1" frameborder="0" allowfullscreen></iframe> -->
   <video id="video" class="box" preload="auto" width="1000" height="600">
-    <!--  <source src="https://r1---sn-ab5l6nzk.googlevideo.com/videoplayback?expire=1494264380&requiressl=yes&sparams=dur%2Cei%2Cid%2Cip%2Cipbits%2Citag%2Clmt%2Cmime%2Cmm%2Cmn%2Cms%2Cmv%2Cpl%2Cratebypass%2Crequiressl%2Csource%2Cupn%2Cexpire&upn=JHTE3F_rK3s&ipbits=0&key=yt6&ratebypass=yes&id=o-ANh1r_wyVXb9ZtRMeQgaGAMKs8lYXYf7x0e_PgxHfJnz&mn=sn-ab5l6nzk&mm=31&mime=video%2Fmp4&pl=19&itag=22&dur=191.030&lmt=1472261526558671&ip=209.205.200.210&ms=au&ei=3FUQWZH7K4i58gSF_6KoAQ&mt=1494242704&mv=u&source=youtube&type=video%2Fmp4%3B+codecs%3D%22avc1.64001F%2C+mp4a.40.2%22&quality=hd720&signature=1A10D5EC6EF0376497BBB309EC851479230AC153.27A836AB8D7095585D621AB19EAB733BB9247B09&title=(HDVidz.in)_Londons-Cycle-Superhighway-7-CS7---rideablebike" type='video/mp4'> -->
     <source src="commute.mp4" type='video/mp4'>
   </video>
-  <!-- <div id="videooverlay"></div> -->
   <div id='map' class="box"></div>
-  <!--   <div class='map-overlay top'>
-    <div class='map-overlay-inner'>
-      <h2>Position</h2>
-      <label id='monthPos'>Start - End</label>
-      <input id='sliderPos' type='range' min='0' max='1000' step='1' value='0' />
-      <h2>Speed</h2>
-      <label id='month'>Fast - Slow</label>
-      <input id='slider' type='range' min='1' max='1000' step='10' value='250' />
-    </div>
-  </div> -->
   <div id="controls" class="box">
     <button class="play">Play</button>
     <button class="pause">Pause</button>
@@ -147,16 +134,13 @@
   var video = document.getElementsByTagName("video")[0];
   var poiTimes = [];
   video.play();
-
   d3.select('#video').attr("width", window.innerWidth * 0.5).attr("height", window.innerHeight * 0.5);
-
   d3.select('.play').on('click', function() {
     video.play();
   });
   d3.select('.pause').on('click', function() {
     video.pause();
   });
-
   d3.json('data/pois.json', function(err, data) {
     pois = data;
     poiTimes = pois.map(function(poi){
@@ -277,9 +261,9 @@
       var videoDuration = video.duration;
       var videoSteps = videoDuration / journeySteps;
 
-      console.log('journeySteps', journeySteps);
-      console.log('videoDuration', videoDuration);
-      console.log('videoSteps', videoSteps);
+      // console.log('journeySteps', journeySteps);
+      // console.log('videoDuration', videoDuration);
+      // console.log('videoSteps', videoSteps);
 
       video.currentTime = videoStartTimeOffset;
 
@@ -292,8 +276,8 @@
         }
         data.features[0].geometry.coordinates = coordinates.slice(0, pos);
         map.getSource('trace').setData(data);
-        console.log('pos', pos);
-        console.log('currentTime', videoSteps * pos)
+        // console.log('pos', pos);
+        // console.log('currentTime', videoSteps * pos)
         video.currentTime = pos * videoSteps;
       })
 
@@ -324,8 +308,9 @@
         var pos = video.currentTime / videoSteps;
         data.features[0].geometry.coordinates = coordinates.slice(0, pos);
         map.getSource('trace').setData(data);
+        console.log('pos', pos, 'center', data.features[0].geometry.coordinates[data.features[0].geometry.coordinates.length - 1], 'duration', speed);
         map.easeTo({
-          center: data.features[0].geometry.coordinates[data.features[0].geometry.coordinates.length - 1],
+          center: data.features[0].geometry.coordinates[data.features[0].geometry.coordinates.length - 1] || false,
           duration: speed
         });
         document.getElementById('sliderPos').value = pos;
