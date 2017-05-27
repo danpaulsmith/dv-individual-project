@@ -18,28 +18,28 @@
   #map {
     position: absolute;
     top: 0;
-    bottom: 0;
+    bottom: 150px;
     left: 0;
-    width: 75%;
+    width: 100%;
     z-index: 10;
   }
   
   #videooverlay {
     position: absolute;
     top: 0;
-    bottom: 0;
+    bottom: 150px;
     left: 0;
-    width: 75%;
-    background-color: rgba(0, 0, 0, 0.8);
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
     z-index: 9;
   }
   
   #video {
     position: absolute;
     top: 0;
-    bottom: 0;
+    bottom: 150px;
     left: 0;
-    width: 75%;
+    width: 100%;
     z-index: 8;
   }
   
@@ -49,30 +49,78 @@
     bottom: 0;
     width: 25%;
     right: 0;
+    display: none;
+  }
+  .container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 150px;
+    z-index: 10;
+    background: #a3a581;
+}
+  .timeline {
+    position: absolute;
+    width: 75%;
+    left: 25%;
+  }
+  .controls {
+    width: 25%;
+    position: absolute;
+    left: 0;
+  }
+  .line {
+    width: 100%;
   }
   </style>
 </head>
 
 <body>
   <!-- <iframe id="video" width="1000" height="600" src="https://www.youtube.com/embed/M6rYVXZTsoY?autoplay=1&html5=1" frameborder="0" allowfullscreen></iframe> -->
+  <div class="container">
+    <div class="controls">
+      <h3>Morning commute</h3>
+      <button class="play">Play</button>
+      <button class="pause">Pause</button>
+    </div>
+    <div class="timeline">
+      <div class="line">
+        <input id='sliderPos' type='range' min='0' max='1000' step='1' value='0' />
+      </div>
+    </div>
+  </div>
+  <video id="video" class="box" preload="auto" width="1000" height="600">
+    <source src="commute.mp4" type='video/mp4'>
+  </video>
   <div id="videooverlay"></div>
   <div id='map'></div>
   <script src='//d3js.org/d3.v3.min.js' charset='utf-8'></script>
   <script>
+
+  var video = document.getElementsByTagName("video")[0];
+  var videoStartTimeOffset = 54;
+  video.currentTime = videoStartTimeOffset;
+  video.play();
+
   d3.select('#video').attr("width", window.innerWidth * 0.75).attr("height", window.innerHeight);
 
   mapboxgl.accessToken = 'pk.eyJ1IjoiZGFucGF1bHNtaXRoIiwiYSI6ImNpeXc4NXU5ZDAwMDMzMm9lZmd4ZTFmZmQifQ.Nl9itu3jhaFTlhrV92LS0g';
   var map = new mapboxgl.Map({
     container: 'map',
-    style: 'mapbox://styles/danpaulsmith/cj2bl2p8d006g2rqn6qagrtb7',
+    style: 'mapbox://styles/danpaulsmith/cj36hkr6r00062ss1cwz8xvr9',
     zoom: 15 // starting zoom
   });
 
+
+
+
   map.on('load', function() {
+
     // We use D3 to fetch the JSON here so that we can parse and use it separately
     // from GL JS's use in the added source. You can use any request method (library
     // or otherwise) that you want.
-    d3.json('data/DynamoDunwich.geojson', function(err, data) {
+    d3.json('data/commute.geojson', function(err, data) {
       if (err) throw err;
 
       // save full coordinate list for later
@@ -117,6 +165,10 @@
         }
       });
       // setup the viewport
+      map.jumpTo({
+        'center': coordinates[0],
+        'zoom': 15
+      });
       map.setPitch(45);
 
       map.addLayer({
@@ -169,18 +221,24 @@
       //   animate(start);
       // }
       // animateBike(data.features[0], data.features[0].geometry.coordinates[data.features[0].geometry.coordinates.length-1]);
-      var speed = 500;
-
+      var journeySteps = coordinates.length;
+      var videoDuration = video.duration;
+      var videoSteps = videoDuration / journeySteps;
       function animate() {
+        var pos = Math.floor(((video.currentTime-videoStartTimeOffset+9) / videoSteps));
+
+        // console.log(pos);
+        // pos = pos + videoSteps;
           // marker.setLngLat(coordinates[i]);
           // data.features[0].geometry.coordinates.push(coordinates[i]);
+          data.features[0].geometry.coordinates = coordinates.slice(0, pos);
           map.getSource('markers').setData({
           "type": "FeatureCollection",
               "features": [{
                 "type": "Feature",
                 "geometry": {
                   "type": "Point",
-                  "coordinates": coordinates[i]
+                  "coordinates": coordinates[pos]
                 },
                 "properties": {
                   // "title": "Me",
@@ -194,21 +252,21 @@
           // map.moveTo(coordinates[i]); 
           // map.flyTo({center: }); 
           map.easeTo({
-            center: coordinates[i],
+            center: coordinates[pos],
             // zoom: 15,
-            bearing: turf.bearing(coordinates[i-1], coordinates[i]),
+            bearing: turf.bearing(coordinates[pos-1], coordinates[pos]),
             duration: 500
-        });
+          });
           //   // These options control the flight curve, making it move
           //   // slowly and zoom out almost completely before starting
           //   // to pan.
           //   speed: 1, // make the flying slow
           //   curve: 0 // change the speed at which it zooms out
           //   });
-          i++;
-          setTimeout(function(){ 
-              requestAnimationFrame(animate);
-          }, speed);
+          // i++;
+          // setTimeout(function(){ 
+          requestAnimationFrame(animate);
+          // }, speed);
       }
       animate();
       // var waypoint = turf.along(path, current_distance, "kilometers");
