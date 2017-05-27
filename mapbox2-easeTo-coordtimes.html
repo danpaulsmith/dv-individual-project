@@ -7,19 +7,21 @@
   <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
   <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.js'></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/4.2.0/turf.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="bower_components/jquery/dist/jquery.min.js"></script>
   <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.css' rel='stylesheet' />
   <style>
+  @import url('https://fonts.googleapis.com/css?family=Roboto');
   body {
     margin: 0;
     padding: 0;
     background: #000;
+    font-family: Roboto;
   }
   
   #map {
     position: absolute;
-    top: 0;
-    bottom: 150px;
+    bottom: 0;
+    top: 150px;
     left: 0;
     width: 100%;
     z-index: 10;
@@ -27,21 +29,12 @@
   
   #videooverlay {
     position: absolute;
-    top: 0;
-    bottom: 150px;
+    bottom: 0;
+    top: 150px;
     left: 0;
     width: 100%;
     background-color: rgba(0, 0, 0, 0.2);
     z-index: 9;
-  }
-  
-  #video {
-    position: absolute;
-    top: 0;
-    bottom: 150px;
-    left: 0;
-    width: 100%;
-    z-index: 8;
   }
   
   #story {
@@ -52,15 +45,120 @@
     right: 0;
     display: none;
   }
-  
+  input[type=range] {
+  -webkit-appearance: none;
+  margin: 18px 0;
+  width: 100%;
+}
+input[type=range]:focus {
+  outline: none;
+}
+input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 8.4px;
+  cursor: pointer;
+  animate: 0.2s;
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+  background: #FBDE2C;
+  border-radius: 1.3px;
+  border: 0.2px solid #010101;
+}
+input[type=range]::-webkit-slider-thumb {
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+  border: 1px solid #000000;
+  height: 36px;
+  width: 16px;
+  border-radius: 3px;
+  background: #ffffff;
+  cursor: pointer;
+  -webkit-appearance: none;
+  margin-top: -14px;
+}
+input[type=range]:focus::-webkit-slider-runnable-track {
+  background: #FBDE2C;
+}
+input[type=range]::-moz-range-track {
+  width: 100%;
+  height: 8.4px;
+  cursor: pointer;
+  animate: 0.2s;
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+  background: #FBDE2C;
+  border-radius: 1.3px;
+  border: 0.2px solid #010101;
+}
+input[type=range]::-moz-range-thumb {
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+  border: 1px solid #000000;
+  height: 36px;
+  width: 16px;
+  border-radius: 3px;
+  background: #ffffff;
+  cursor: pointer;
+}
+input[type=range]::-ms-track {
+  width: 100%;
+  height: 8.4px;
+  cursor: pointer;
+  animate: 0.2s;
+  background: transparent;
+  border-color: transparent;
+  border-width: 16px 0;
+  color: transparent;
+}
+input[type=range]::-ms-fill-lower {
+  background: #E8CF2B;
+  border: 0.2px solid #010101;
+  border-radius: 2.6px;
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+}
+input[type=range]::-ms-fill-upper {
+  background: #FBDE2C;
+  border: 0.2px solid #010101;
+  border-radius: 2.6px;
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+}
+input[type=range]::-ms-thumb {
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+  border: 1px solid #000000;
+  height: 36px;
+  width: 16px;
+  border-radius: 3px;
+  background: #ffffff;
+  cursor: pointer;
+}
+input[type=range]:focus::-ms-fill-lower {
+  background: #FBDE2C;
+}
+input[type=range]:focus::-ms-fill-upper {
+  background: #FBDE2C;
+}
+  button {
+      border: none;
+      padding: 4px 8px;
+      font-size: 14px;
+      background: linear-gradient(#f3f3f3, #c7c7c7);
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      cursor: pointer;
+  }
+  button:hover {
+      background: linear-gradient(#F8FCFC, #D8DBDB);
+      border: 1px solid #aaa;
+  }
+  button:active {
+      background: linear-gradient(#D8DBDB, #F8FCFC);
+      border: 1px solid #aaa;
+  }
   .container {
     position: absolute;
-    bottom: 0;
+    top: 0;
     left: 0;
     right: 0;
     height: 150px;
     z-index: 10;
-    background: #a3a581;
+    background: #333333;
+    color: #fff;
   }
   
   .timeline {
@@ -82,6 +180,26 @@
   .key {
     display: inline-block;
     width: 50px;
+  }
+
+  #video {
+    position: absolute;
+    bottom: 0;
+    top: 150px;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 8;
+  }
+  #video.box {
+    position: absolute;
+    bottom: 0px;
+    top: auto;
+    left: auto;
+    width: 400px;
+    height: 270px;
+    z-index: 1000;
+    right: 25px !important;
   }
   
  /* label {
@@ -146,7 +264,8 @@
       </div>
     </div>
   </div>
-  <video id="video" class="box" preload="auto" width="1000" height="600">
+
+  <video id="video" preload="auto" width="1000" height="600">
     <source src="commute.mp4" type='video/mp4'>
   </video>
   <div id="videooverlay"></div>
@@ -177,17 +296,21 @@
     });
     $('button.map-default').click(function(){
       map.setStyle('mapbox://styles/danpaulsmith/cj36hkr6r00062ss1cwz8xvr9');
+      $('video').removeClass('box');
     })
     $('button.map-light').click(function(){
       map.setStyle('mapbox://styles/mapbox/light-v9');
+      $('video').addClass('box');
     })
     $('button.map-dark').click(function(){
       map.setStyle('mapbox://styles/mapbox/dark-v9');
+      $('video').addClass('box');
     })
     $('button.map-satellite').click(function(){
       map.setStyle('mapbox://styles/mapbox/satellite-v9');
-    })
-  })
+      $('video').addClass('box');
+    });
+  });
   var timeCoordsMap = {};
   var accidentData;
   var video = document.getElementsByTagName("video")[0];
@@ -340,7 +463,6 @@ var startPos;
             }]
           });
           }
-
           map.easeTo({
             center: mapping.coord,
             // zoom: 15,
