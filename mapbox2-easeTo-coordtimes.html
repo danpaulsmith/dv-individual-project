@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset='utf-8' />
+  <title>Morning commute</title>
+  <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+  <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.js'></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/4.2.0/turf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.css' rel='stylesheet' />
+  <style>
+  body {
+    margin: 0;
+    padding: 0;
+    background: #000;
+  }
+  
+  #map {
+    position: absolute;
+    top: 0;
+    bottom: 150px;
+    left: 0;
+    width: 100%;
+    z-index: 10;
+  }
+  
+  #videooverlay {
+    position: absolute;
+    top: 0;
+    bottom: 150px;
+    left: 0;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.2);
+    z-index: 9;
+  }
+  
+
+  
+  #story {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 25%;
+    right: 0;
+    display: none;
+  }
+  
+  .container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 150px;
+    z-index: 10;
+    background: #a3a581;
+  }
+  
+  .timeline {
+    position: absolute;
+    width: 75%;
+    left: 25%;
+  }
+  
+  .controls {
+    width: 25%;
+    position: absolute;
+    left: 0;
+  }
+  
+  .line {
+    width: 100%;
+  }
+  
+  .key {
+    display: inline-block;
+    width: 50px;
+  }
+  #video {
+    position: absolute;
+    top: 0;
+    bottom: 150px;
+    left: 0;
+    width: 100%;
+    z-index: 8;
+  }
+  #video.box {
+    position: absolute;
+    top: 0px;
+    bottom: auto;
+    left: 0;
+    width: 400px;
+    height: 270px;
+    z-index: 1000;
+    right: 25px !important;
+    left: auto;
+  }
+  
+ /* label {
+    display: block;
+  }*/
+  
+  .fatal {
+    width: 15px;
+    height: 15px;
+    border-radius: 10px;
+    background-color: #ff0000;
+    float: left;
+    margin-right: 5px;
+  }
+  
+  .serious {
+    width: 15px;
+    height: 15px;
+    border-radius: 10px;
+    background-color: #FC5F08;
+    float: left;
+    margin-right: 5px;
+  }
+  
+  .slight {
+    width: 15px;
+    height: 15px;
+    border-radius: 10px;
+    background-color: #FEEB0A;
+    float: left;
+    margin-right: 5px;
+  }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="controls">
+      <h3>Morning commute</h3>
+      <p class="timer"></p>
+      <button class="play">Play</button>
+      <button class="pause">Pause</button>
+      <label>Speed</label>
+      <button class="speed1">Default</button>
+      <button class="speed2">2x</button>
+      <button class="speed5">5x</button>
+      <button class="speed10">10x</button>
+      <button class="speed50">50x</button>
+      <label>Map type</label>
+      <button class="map-default">Default</button>
+      <button class="map-light">Light</button>
+      <button class="map-dark">Dark</button>
+      <button class="map-satellite">Satellite</button>
+      <label>Cycling accidents (2015)</label>
+      <span class="key"><span class="fatal"></span>Fatal</span>
+      <span class="key"><span class="serious"></span>Serious</span>
+      <span class="key"><span class="slight"></span>Slight</span>
+    </div>
+    <div class="timeline">
+      <div class="line">
+        <input id='sliderPos' type='range' min='0' max='1000' step='1' value='0' />
+      </div>
+    </div>
+  </div>
+  <video id="video" preload="auto" width="1000" height="600">
+    <source src="commute.mp4" type='video/mp4'>
+  </video>
+  <div id="videooverlay"></div>
+  <div id='map'></div>
+  <script src='//d3js.org/d3.v3.min.js' charset='utf-8'></script>
+  <script>
+  $(document).ready(function() {
+    $('button.play').click(function() {
+      video.play();
+    });
+    $('button.pause').click(function() {
+      video.pause();
+    });
+    $('button.speed1').click(function() {
+      video.playbackRate = 1.0;
+    });
+    $('button.speed2').click(function() {
+      video.playbackRate = 2.0;
+    });
+    $('button.speed5').click(function() {
+      video.playbackRate = 5.0;
+    });
+    $('button.speed10').click(function() {
+      video.playbackRate = 10.0;
+    });
+    $('button.speed50').click(function() {
+      video.playbackRate = 50.0;
+    });
+    $('button.map-default').click(function(){
+      map.setStyle('mapbox://styles/danpaulsmith/cj36hkr6r00062ss1cwz8xvr9');
+      $('video').removeClass('box');
+    })
+    $('button.map-light').click(function(){
+      map.setStyle('mapbox://styles/mapbox/light-v9');
+      $('video').addClass('box');
+    })
+    $('button.map-dark').click(function(){
+      map.setStyle('mapbox://styles/mapbox/dark-v9');
+      $('video').addClass('box');
+    })
+    $('button.map-satellite').click(function(){
+      map.setStyle('mapbox://styles/mapbox/satellite-v9');
+      $('video').addClass('box');
+    })
+  })
+  var timeCoordsMap = {};
+  var accidentData;
+  var video = document.getElementsByTagName("video")[0];
+  var videoStartTimeOffset = 54;
+  video.currentTime = videoStartTimeOffset;
+
+
+  d3.select('#video').attr("width", window.innerWidth).attr("height", window.innerHeight);
+
+  // var bounds = [
+  //   [-0.029526, 51.666593], // Southwest coordinates
+  //   [-0.020599, 51.670000]  // Northeast coordinates
+  // ];
+
+  mapboxgl.accessToken = 'pk.eyJ1IjoiZGFucGF1bHNtaXRoIiwiYSI6ImNpeXc4NXU5ZDAwMDMzMm9lZmd4ZTFmZmQifQ.Nl9itu3jhaFTlhrV92LS0g';
+  var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/danpaulsmith/cj36hkr6r00062ss1cwz8xvr9',
+    zoom: 15, // starting zoom
+    minZoom: 11,
+    hash: false
+    // maxBounds: [[51.746588, 0.319977], [51.792479, 0.277405]]
+  });
+
+var startPos;
+  map.on('style.load', function () {
+    if(accidentData){
+      // Triggered when `setStyle` is called.
+      addDataAndInteraction();
+    }
+  });
+  map.on('load', function() {
+
+    // Bike accidents
+    // Accident severity
+    // 1 Fatal
+    // 2 Serious
+    // 3 Slight
+
+    // Casualty severity
+    // 1 Fatal
+    // 2 Serious
+    // 3 Slight
+
+    // Casualty type
+    // 0 Pedestrian
+    // 1 Cyclist
+    d3.csv('data/Casualties_2015_slim.csv', function(d) {
+      if (d['Casualty Type'] === '1') {
+        return {
+          id: d.Accident_Index,
+          type: parseInt(d['Casualty Type']),
+          coord: [parseFloat(d.Longitude), parseFloat(d.Latitude)],
+          severity: parseInt(d.Accident_Severity)
+        };
+      }
+    }, function(error, rows) {
+      accidentData = rows;
+      addDataAndInteraction();
+    });
+
+    // We use D3 to fetch the JSON here so that we can parse and use it separately
+    // from GL JS's use in the added source. You can use any request method (library
+    // or otherwise) that you want.
+    d3.json('data/commute.geojson', function(err, data) {
+      if (err) throw err;
+
+      // save full coordinate list for later
+      // var coordinates = data.features[0].geometry.coordinates;
+      var coordinates = data.features[0].geometry.coordinates.map(function(coord) {
+        return [coord[0], coord[1]];
+      });
+
+
+      var times = data.features[0].properties.coordTimes.map(function(time, index) {
+        timeCoordsMap[time] = {
+          step: index,
+          time: new Date(time),
+          prevcoord: coordinates[index - 1] || coordinates[0],
+          coord: coordinates[index]
+        };
+        return new Date(time);
+      });
+
+      // console.log(coordinates[0], times[0]);
+      // console.log(coordinates[1], times[1]);
+      // console.log(coordinates[2], times[2]);
+
+      var startTime = times[0];
+      startPos = coordinates[0];
+      document.getElementById('sliderPos').min = videoStartTimeOffset;
+      document.getElementById('sliderPos').max = Math.floor(video.duration);
+      document.getElementById('sliderPos').addEventListener('input', function(e) {
+        // var index = e.target.value;
+        // var scrubTime = new Date(currentDayTime.setSeconds(currentDayTime.getSeconds() + Math.ceil(video.currentTime)));
+        video.currentTime = e.target.value;
+      });
+
+      console.log(startTime, startPos);
+      // start by showing just the first coordinate
+      data.features[0].geometry.coordinates = [startPos];
+
+      // add it to the map
+      // map.addSource('trace', { type: 'geojson', data: data });
+      // map.addLayer({
+      //     "id": "trace",
+      //     "type": "line",
+      //     "source": "trace",
+      //     "paint": {
+      //         "line-color": "yellow",
+      //         "line-opacity": 0.75,
+      //         "line-width": 5
+      //     }
+      // });
+
+      
+      var i = 1;
+      // var journeySteps = coordinates.length;
+      // var videoDuration = video.duration;
+      // var videoSteps = videoDuration / journeySteps;
+
+
+      var currentDayTime = new Date(startTime);
+      // console.log('currentDayTime', currentDayTime);
+      var vidTime;
+      var mapping = false;
+
+      function animate2() {
+        document.getElementById('sliderPos').value = Math.floor(video.currentTime);
+        // console.log('video.currentTime', Math.floor(video.currentTime), 'vidTime', vidTime);
+        currentDayTime = new Date(startTime);
+        vidTime = new Date(currentDayTime.setSeconds(currentDayTime.getSeconds() + Math.ceil(video.currentTime)));
+        // console.log('Map?', vidTime.toISOString().slice(0,19)+'Z');
+        if (timeCoordsMap[vidTime.toISOString().slice(0, 19) + 'Z']) {
+          mapping = timeCoordsMap[vidTime.toISOString().slice(0, 19) + 'Z'];
+          // console.log('Video elapsed:', Math.floor(video.currentTime), ', time: ', mapping.time, 'coord: ', mapping.coord);
+          map.getSource('markers').setData({
+            "type": "FeatureCollection",
+            "features": [{
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": mapping.coord
+              },
+              "properties": {
+                // "title": "Me",
+                "marker-symbol": "triangle-15"
+              }
+            }]
+          });
+
+          map.easeTo({
+            center: mapping.coord,
+            // zoom: 15,
+            bearing: turf.bearing(mapping.prevcoord, mapping.coord),
+            duration: 1000
+          });
+        }
+        setTimeout(function() {
+          requestAnimationFrame(animate2);
+        });
+      }
+
+      animate2();
+
+
+    });
+  });
+
+  function addDataAndInteraction() {
+    var accidents = accidentData.map(function(accident) {
+        return {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": accident.coord
+          },
+          "properties": {
+            "marker-symbol": "marker-15",
+            "name": "Cycling accident",
+            "severityCode": accident.severity,
+            "severity": (accident.severity === 1 ? 'Fatal' : (accident.severity === 2 ? 'Serious' : 'Slight'))
+          }
+        }
+      });
+      map.addSource('accidents', {
+        "type": "geojson",
+        "data": {
+          "type": "FeatureCollection",
+          "features": accidents
+        }
+      });
+
+      map.addLayer({
+        id: 'accidentLayer',
+        type: 'circle',
+        source: 'accidents',
+        paint: {
+          'circle-opacity': 0.9,
+          'circle-color': {
+            property: 'severityCode',
+            stops: [
+              [1, '#ff0000'],
+              [2, '#FC5F08'],
+              [3, '#FEEB0A']
+            ]
+          }
+        }
+      });
+      map.addLayer({
+        'id': '3d-buildings',
+        'source': 'composite',
+        'source-layer': 'building',
+        'filter': ['==', 'extrude', 'true'],
+        'type': 'fill-extrusion',
+        'minzoom': 15,
+        'paint': {
+            'fill-extrusion-color': '#aaa',
+            'fill-extrusion-height': {
+                'type': 'identity',
+                'property': 'height'
+            },
+            'fill-extrusion-base': {
+                'type': 'identity',
+                'property': 'min_height'
+            },
+            'fill-extrusion-opacity': .6
+        }
+    });
+      map.on('click', 'accidentLayer', function(e) {
+        new mapboxgl.Popup()
+          .setLngLat(e.lngLat)
+          .setHTML('<p>Accident: ' + e.features[0].properties.severity + '</p>')
+          .addTo(map);
+      });
+
+      map.addSource('markers', {
+        "type": "geojson",
+        "data": {
+          "type": "FeatureCollection",
+          "features": [{
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": startPos
+            },
+            "properties": {
+              "marker-symbol": "triangle-15"
+            }
+          }]
+        }
+      });
+      // setup the viewport
+      map.jumpTo({
+        'center': startPos,
+        'zoom': 16
+      });
+      map.setPitch(60);
+
+      map.addLayer({
+        "id": "markers",
+        "source": "markers",
+        "type": "symbol",
+        "layout": {
+          "icon-image": "{marker-symbol}",
+          "text-field": "{title}",
+          "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+          "text-offset": [0, 0.6],
+          "text-anchor": "top"
+        }
+      });
+  }
+  </script>
+</body>
+
+</html>
