@@ -3,7 +3,7 @@
 
 <head>
   <meta charset='utf-8' />
-  <title>Morning commute</title>
+  <title>The commute</title>
   <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
   <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.js'></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/4.2.0/turf.min.js"></script>
@@ -26,7 +26,17 @@
     width: 100%;
     z-index: 10;
   }
-  
+  .intro {
+    width: 25%;
+    left: 0;
+    position: absolute;
+    background: url(http://quant.casa.ucl.ac.uk/images/Bttn_Logo_Casa_Square.png);
+    background-size: 25%;
+    background-repeat: no-repeat;
+    text-indent: 125px;
+    height: 100%;
+    background-position: 0px 10px;
+  }
   #videooverlay {
     position: absolute;
     bottom: 0;
@@ -36,7 +46,17 @@
     background-color: rgba(0, 0, 0, 0.2);
     z-index: 9;
   }
-  
+  .keyy {
+    position: absolute;
+    left: 25%;
+    width: 75%;
+}
+.key {
+    display: inline-block;
+    width: auto;
+    margin-left: 15px;
+    margin-top: 15px;
+}
   #story {
     position: absolute;
     top: 0;
@@ -44,6 +64,112 @@
     width: 25%;
     right: 0;
     display: none;
+  }
+  
+  button {
+      border: none;
+      padding: 4px 8px;
+      font-size: 14px;
+      background: linear-gradient(#f3f3f3, #c7c7c7);
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      cursor: pointer;
+  }
+  button:hover {
+      background: linear-gradient(#F8FCFC, #D8DBDB);
+      border: 1px solid #aaa;
+  }
+  button:active {
+      background: linear-gradient(#D8DBDB, #F8FCFC);
+      border: 1px solid #aaa;
+  }
+ .container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 150px;
+    background: #333333;
+    color: #fff;
+    z-index: 99;
+    box-shadow: 0px 1px 10px 5px #222;
+}
+  
+  .timeline {
+    position: absolute;
+    width: 73%;
+    left: 25%;
+    top: 38px;
+}
+  
+  .intro {
+     width: 25%;
+     left: 0;
+     position: absolute;
+  }
+  .controls {
+    width: 75%;
+    position: absolute;
+    left: 25%;
+    top: 90px;
+  }
+  .controls label {
+    margin-left: 60px;
+    margin-right: 10px;
+  }
+  .line {
+    width: 100%;
+  }
+
+  #video {
+    position: absolute;
+    bottom: 0;
+    top: 150px;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 8;
+  }
+  #video.box {
+    position: absolute;
+    bottom: 0px;
+    top: auto;
+    left: auto;
+    width: 400px;
+    height: 270px;
+    z-index: 1000;
+    right: 25px !important;
+  }
+  
+ /* label {
+    display: block;
+  }*/
+  
+  .fatal {
+    width: 15px;
+    height: 15px;
+    border-radius: 10px;
+    background-color: #ff0000;
+    float: left;
+    margin-right: 5px;
+  }
+  
+  .serious {
+    width: 15px;
+    height: 15px;
+    border-radius: 10px;
+    background-color: #FC5F08;
+    float: left;
+    margin-right: 5px;
+  }
+  
+  .slight {
+    width: 15px;
+    height: 15px;
+    border-radius: 10px;
+    background-color: #FEEB0A;
+    float: left;
+    margin-right: 5px;
   }
   input[type=range] {
   -webkit-appearance: none;
@@ -133,115 +259,21 @@ input[type=range]:focus::-ms-fill-lower {
 input[type=range]:focus::-ms-fill-upper {
   background: #FBDE2C;
 }
-  button {
-      border: none;
-      padding: 4px 8px;
-      font-size: 14px;
-      background: linear-gradient(#f3f3f3, #c7c7c7);
-      border: 1px solid #ccc;
-      border-radius: 3px;
-      cursor: pointer;
-  }
-  button:hover {
-      background: linear-gradient(#F8FCFC, #D8DBDB);
-      border: 1px solid #aaa;
-  }
-  button:active {
-      background: linear-gradient(#D8DBDB, #F8FCFC);
-      border: 1px solid #aaa;
-  }
-  .container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 150px;
-    z-index: 10;
-    background: #333333;
-    color: #fff;
-  }
-  
-  .timeline {
-    position: absolute;
-    width: 75%;
-    left: 25%;
-  }
-  
-  .controls {
-    width: 25%;
-    position: absolute;
-    left: 0;
-  }
-  
-  .line {
-    width: 100%;
-  }
-  
-  .key {
-    display: inline-block;
-    width: 50px;
-  }
-
-  #video {
-    position: absolute;
-    bottom: 0;
-    top: 150px;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 8;
-  }
-  #video.box {
-    position: absolute;
-    bottom: 0px;
-    top: auto;
-    left: auto;
-    width: 400px;
-    height: 270px;
-    z-index: 1000;
-    right: 25px !important;
-  }
-  
- /* label {
-    display: block;
-  }*/
-  
-  .fatal {
-    width: 15px;
-    height: 15px;
-    border-radius: 10px;
-    background-color: #ff0000;
-    float: left;
-    margin-right: 5px;
-  }
-  
-  .serious {
-    width: 15px;
-    height: 15px;
-    border-radius: 10px;
-    background-color: #FC5F08;
-    float: left;
-    margin-right: 5px;
-  }
-  
-  .slight {
-    width: 15px;
-    height: 15px;
-    border-radius: 10px;
-    background-color: #FEEB0A;
-    float: left;
-    margin-right: 5px;
-  }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <div class="controls">
-      <h3>Morning commute</h3>
+    <div class="intro">
+      <h3>The commute</h3>
+      <p>Dan Smith</p>
+      <p>MRes Digital visualisation project</p>
       <p class="timer"></p>
+    </div>
+    <div class="controls">
       <button class="play">Play</button>
       <button class="pause">Pause</button>
+      <button class="toggle-follow">Follow on/off</button>
       <button class="toggle-pitch">Birdseye on/off</button>
       <button class="toggle-autorotate">Autorotate on/off</button>
       <label>Speed</label>
@@ -255,6 +287,8 @@ input[type=range]:focus::-ms-fill-upper {
       <button class="map-light">Light</button>
       <button class="map-overlay">Overlay</button>
       <button class="map-satellite">Satellite</button>
+    </div>
+    <div class="keyy">
       <label>Cycling accidents (2015)</label>
       <span class="key"><span class="fatal"></span>Fatal</span>
       <span class="key"><span class="serious"></span>Serious</span>
@@ -277,6 +311,7 @@ input[type=range]:focus::-ms-fill-upper {
   var playing = false;
   var pitch = 60;
   var autoRotate = true;
+  var follow = true;
   $(document).ready(function() {
     $('button.play').click(function() {
       playing = true;
@@ -330,6 +365,13 @@ input[type=range]:focus::-ms-fill-upper {
         autoRotate = false;
       } else {
         autoRotate = true;
+      }
+    });
+    $('button.toggle-follow').click(function(){
+      if(follow) {
+        follow = false;
+      } else {
+        follow = true;
       }
     });
   });
@@ -488,12 +530,19 @@ var startPos;
               }]
             });
             }
-            map.easeTo({
-              center: mapping.coord,
-              // zoom: 15,
-              bearing: (autoRotate ? turf.bearing(mapping.prevcoord, mapping.coord) : false),
-              duration: 1000
-            });
+            if(follow) {
+              map.easeTo({
+                center: mapping.coord,
+                bearing: (autoRotate ? turf.bearing(mapping.prevcoord, mapping.coord) : false),
+                duration: 1000
+              });
+            } else {
+              map.easeTo({
+                bearing: (autoRotate ? turf.bearing(mapping.prevcoord, mapping.coord) : false),
+                duration: 1000
+              });
+            }
+            
           }
         }
         setTimeout(function() {
