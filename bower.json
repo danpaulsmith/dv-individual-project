@@ -16,6 +16,7 @@
   ],
   "dependencies": {
     "bootstrap-material-design": "^4.0.2",
-    "nouislider": "^9.2.0"
+    "nouislider": "^9.2.0",
+    "jquery-modal": "^0.8.0"
   }
 }
