@@ -605,7 +605,8 @@ var startPos;
           currentDayTime = new Date(startTime);
           vidTime = new Date(currentDayTime.setSeconds(currentDayTime.getSeconds() + Math.ceil(video.currentTime)));
           // console.log('Map?', vidTime.toISOString().slice(0,19)+'Z');
-          $('p.timer').text(new Date(vidTime.setHours(vidTime.getHours()+1)).toISOString().slice(11, 19)+' AM');
+          var time = new Date(vidTime);
+          $('p.timer').text(new Date(time.setHours(time.getHours()+1)).toISOString().slice(11, 19)+' AM');
           if (timeCoordsMap[vidTime.toISOString().slice(0, 19) + 'Z']) {
             mapping = timeCoordsMap[vidTime.toISOString().slice(0, 19) + 'Z'];
             // console.log('Video elapsed:', Math.floor(video.currentTime), ', time: ', mapping.time, 'coord: ', mapping.coord);
